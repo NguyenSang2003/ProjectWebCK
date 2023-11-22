@@ -63,8 +63,28 @@
 <script>
     const  onSubmit = async (dataSub)=>{
 
-      const data =  await  axios.post("http://localhost:8080/demoProject_war/register", dataSub)
-        console.log(dataSub)
+      // const data =  await  axios.post("http://localhost:8080/demoProject_war/register", dataSub)
+      //   console.log(dataSub)
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8080/demoProject_war/register")
+        xhr.setRequestHeader("Content-Type", "application/json")
+        xhr.onreadystatechange = ()=>{
+            if(xhr.readyState  === XMLHttpRequest.DONE ){
+                if(xhr.status === 200){
+                    const respone = JSON.parse(xhr.responseText);
+                    if(respone.status ==200){
+                        window.onload = window.location.href = "http://localhost:8080/demoProject_war/login.jsp"
+                    }
+                    else{
+                        alert(respone.message)
+                    }
+                }
+                else {
+                    alert("Thất bại !")
+                }
+            }
+        }
+        xhr.send(JSON.stringify(dataSub))
     }
     Validator({
         form: '#form',
