@@ -33,7 +33,7 @@
         <div class="row align-items-center py-3 px-xl-5">
             <div class="col-lg-3 d-none d-lg-block">
                 <a href="" class="text-decoration-none">
-                    <h1 class="logo">Nhóm 26</h1>
+                    <h1 class="logo">Nhóm 26v </h1>
                 </a>
             </div>
             <div class="col-lg-6 col-6 text-left">
