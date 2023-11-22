@@ -60,7 +60,28 @@ public class UserDAO {
         }
         return checkEmail;
     }
-
+//    Kiểm tra có phải là admin không
+    public boolean checkIsAdmin(String idUser){
+        Connection connection = Connect.getConnection();
+        boolean isAdmin;
+        try{
+            connection = Connect.getConnection();
+            String sql = "select isAdmin from user where idUser= ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, idUser);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if (resultSet.next()) {
+                isAdmin = resultSet.getBoolean("isAdmin");
+                return  isAdmin;
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        finally {
+            Connect.closeConnection(connection);
+        }
+        return false;
+    }
     public boolean resgisterWithEmail(String email, String username, String pass) {
         Connection connection = null;
         if (checkEmail(email)) {

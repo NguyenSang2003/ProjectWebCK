@@ -50,7 +50,7 @@ function upload(nameTopic, interfaceImage) {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 var data = JSON.parse(xhr.responseText);
-                if (data.status) {
+                if (data.status === 200) {
                     alert(data.message);
                     location.reload();
                 } else {

@@ -38,11 +38,34 @@
         <% User user = (User) session.getAttribute("user") == null ? null : (User) (session.getAttribute("user"));  %>
 
         (async function getData(){
-         const data =  await  axios.get(`http://localhost:8080/demoProject_war/topic?idUser=<%= (user == null) ? null : user.getId() %>`)
-            if(data.data.status !=200){
-                window.onload =  window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';
-            }
-            getDataTopic(data.data.listTopic)
+         <%--const data =  await  axios.get(`http://localhost:8080/demoProject_war/topic?idUser=<%= (user == null) ? null : user.getId() %>`)--%>
+         <%--   if(data.data.status !=200){--%>
+         <%--       window.onload =  window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';--%>
+         <%--   }--%>
+         <%--   getDataTopic(data.data.listTopic)--%>
+            const userId = <%= (user == null) ? null : user.getId() %>;
+            const url = `http://localhost:8080/demoProject_war/topic?idUser=${userId}`;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+
+                        if (data.status !== 200) {
+                            window.onload = window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';
+                        }
+
+                        getDataTopic(data.listTopic);
+                    } else {
+                        console.error('Error:', xhr.status);
+                    }
+                }
+            };
+
+            xhr.send();
         })()
 
 </script>
@@ -280,15 +303,35 @@
         const btnDelete = document.querySelector("#btn-delete-topic")
         console.log(btnDelete)
         btnDelete.addEventListener('click', async ()=>{
-            const {data} = await  axios.delete(`http://localhost:8080/demoProject_war/topic?idTopic=${idTopic}`)
-            console.log(`http://localhost:8080/demoProject_war/topic?idTopic=${idTopic}`)
-            if(data.status ===200){
-                alert(data.message)
-                location.reload()
+            <%--const {data} = await  axios.delete(`http://localhost:8080/demoProject_war/topic?idTopic=${idTopic}`)--%>
+            <%--console.log(data)--%>
+            <%--if(data.status ===200){--%>
+            <%--    alert(data.message)--%>
+            <%--    location.reload()--%>
+            <%--}--%>
+            <%--else  if (data.status ===500){--%>
+            <%--    alert(data.message)--%>
+            <%--}--%>
+            const xhr = new XMLHttpRequest();
+            const url =`http://localhost:8080/demoProject_war/topic?idTopic=${idTopic}`
+            xhr.open("DELETE", url)
+            xhr.onreadystatechange = ()=>{
+                if(xhr.readyState === 4){
+                    if(xhr.status === 200){
+                        const data = JSON.parse(xhr.responseText)
+                        if (data.status === 200) {
+                            alert(data.message);
+                            location.reload();
+                        } else if (data.status === 500) {
+                            alert(data.message);
+                        }
+                    }
+                }
+                else {
+                    console.error("err :" + xhr.status)
+                }
             }
-            else  if (data.status ===500){
-                alert(data.message)
-            }
+            xhr.send()
         })
     })
 </script>
