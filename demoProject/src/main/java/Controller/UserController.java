@@ -1,5 +1,7 @@
 package Controller;
 
+import DAO.UserDAO;
+import Services.Connect;
 import nhom26.Topic;
 import nhom26.User;
 import org.json.JSONObject;
@@ -23,68 +25,18 @@ public class UserController extends HttpServlet {
         String idUser = req.getParameter("idUser"); // ok
         System.out.println("-----USER[GET]");
         System.out.println("idUser: " + idUser );
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
-
-            // Câu truy vấn kiểm tra quyền admin
-            String sql = "select isAdmin from user where idUser= ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, idUser);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            boolean isAdmin = false;
-            JSONObject jsonObject = new JSONObject();
-            if (resultSet.next()) {
-                isAdmin = resultSet.getBoolean("isAdmin");
-            }
-            else{
-
-                jsonObject.put("status", 500);
-            }
-            System.out.println("isAdmin :" + isAdmin);
-
-            // Kiểm tra quyền và chuyển hướng
-
-            if (isAdmin) {
-            // Câu truy vấn lấy dữ liệu topic
-            String getAllUser = "select idUser, email,name, password, isVerifyEmail, isActive, isAdmin, createdAt from user";
-            PreparedStatement preparedStatementGetUser= connection.prepareStatement(getAllUser);
-            ResultSet resultSetGetUser = preparedStatementGetUser.executeQuery();
-            ArrayList<User> listUser = new ArrayList<User>();
-            while (resultSetGetUser.next()) {
-                User user = new User();
-                user.setId(resultSetGetUser.getInt("idUser"));
-                user.setEmail(resultSetGetUser.getString("email"));
-                user.setUsername(resultSetGetUser.getString("name"));
-                user.setPasword(resultSetGetUser.getString("password"));
-                user.setVerifyEmail(resultSetGetUser.getBoolean("isVerifyEmail"));
-                user.setActive(resultSetGetUser.getBoolean("isActive"));
-                user.setAdmin(resultSetGetUser.getBoolean("isAdmin"));
-                user.setCreatedAt(resultSetGetUser.getDate("createdAt"));
-                listUser.add(user);
-            }
-            ArrayList<User> res = new ArrayList<User>();
-            for (User user : listUser) {
-                if(!user.isAdmin()){
-                    res.add(user);
-                }
-            }
+        UserDAO userDAO = new UserDAO();
+        JSONObject jsonObject = new JSONObject();
+        if(userDAO.checkIsAdmin(idUser)){
             jsonObject.put("status", 200);
-            jsonObject.put("listUser", res);
+            jsonObject.put("listUser", userDAO.getAllUsers());
             resp.setContentType("application/json");
             resp.getWriter().write(jsonObject.toString());
-            } else {
-                jsonObject.put("status", 404);
-                resp.setContentType("application/json");
-                resp.getWriter().write(jsonObject.toString());
-            }
-
-        } catch (SQLException e) {
-            System.err.println("SQLException: " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            System.err.println("ClassNotFoundException: " + e.getMessage());
-            throw new RuntimeException(e);
+        }
+        else{
+            jsonObject.put("status", 404);
+            resp.setContentType("application/json");
+            resp.getWriter().write(jsonObject.toString());
         }
 
     }
@@ -96,32 +48,20 @@ public class UserController extends HttpServlet {
         resp.setCharacterEncoding("UTF-8");
         String idUser = req.getParameter("idUser");
         System.out.println("delete " +idUser);
-        try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
-            String sqlDelete = "delete from user where idUser = ?";
-            PreparedStatement preparedStatement = connection.prepareStatement(sqlDelete);
-            preparedStatement.setString(1,idUser);
-            int resultSet = preparedStatement.executeUpdate();
-            JSONObject jsonObject = new JSONObject();
-            if(resultSet > 0){
-                jsonObject.put("status", 200);
-                jsonObject.put("message", "Đã xóa thành công");
-                resp.setContentType("application/json");
-                resp.getWriter().write(jsonObject.toString());
-            }
-            else {
-                jsonObject.put("status", 500);
-                jsonObject.put("message", "Xóa chủ đề thất bại. Vui lòng thử lại");
-                resp.setContentType("application/json");
-                resp.getWriter().write(jsonObject.toString());
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+       UserDAO userDAO = new UserDAO();
+       JSONObject jsonObject = new JSONObject();
+       if(userDAO.deleteUserById(idUser)){
+           jsonObject.put("status", 200);
+           jsonObject.put("message", "Đã xóa thành công");
+           resp.setContentType("application/json");
+           resp.getWriter().write(jsonObject.toString());
+       }
+       else{
+           jsonObject.put("status", 500);
+           jsonObject.put("message", "Xóa người dùng thất bại. Vui lòng thử lại");
+           resp.setContentType("application/json");
+           resp.getWriter().write(jsonObject.toString());
+       }
     }
 
     @Override
@@ -129,10 +69,10 @@ public class UserController extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
         String idUser = req.getParameter("idUser");
+        Connection connection = null;
         try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
-            String sqlGetActive = "select isActive from user where idUser = ?";
+            connection = Connect.getConnection();
+           String sqlGetActive = "select isActive from user where idUser = ?";
             boolean isActive ;
             PreparedStatement preparedStatement = connection.prepareStatement(sqlGetActive);
             preparedStatement.setString(1,idUser);
@@ -167,8 +107,9 @@ public class UserController extends HttpServlet {
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        }
+        finally {
+            Connect.closeConnection(connection);
         }
     }
 }

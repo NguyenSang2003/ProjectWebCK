@@ -1,10 +1,13 @@
 package DAO;
 
 import Services.Connect;
+import nhom26.Topic;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TopicDAO {
     public boolean insertTopic(String nameTopic, String interfaceImage) {
@@ -76,5 +79,27 @@ public class TopicDAO {
             Connect.closeConnection(connection);
         }
         return false;
+    }
+    public ArrayList<Topic> getAllTopics(){
+        Connection connection = null;
+        ArrayList<Topic> listTopic = new ArrayList<Topic>();
+        try{
+            connection = Connect.getConnection();
+            // Câu truy vấn lấy dữ liệu topic
+            String getAllTopic = "select idTopic , name, interfaceImage from topic";
+            PreparedStatement preparedStatementGetTopic = connection.prepareStatement(getAllTopic);
+            ResultSet resultSetGetTopic = preparedStatementGetTopic.executeQuery();
+            while (resultSetGetTopic.next()) {
+                Topic topic = new Topic();
+                topic.setIdTopic(resultSetGetTopic.getInt("idTopic"));
+                topic.setName(resultSetGetTopic.getString("name"));
+                topic.setImageInterface(resultSetGetTopic.getString("interfaceImage"));
+                topic.setProduct(0);
+                listTopic.add(topic);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return listTopic;
     }
 }

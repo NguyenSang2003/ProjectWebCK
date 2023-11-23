@@ -36,11 +36,35 @@
         <% User user = (User) session.getAttribute("user") == null ? null : (User) (session.getAttribute("user"));  %>
 
         (async function getData(){
-            const data =await  axios.get(`http://localhost:8080/demoProject_war/user?idUser=<%= (user == null) ? null : user.getId() %>`)
-            if(data.data.status !=200){
-                window.onload =  window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';
-            }
-            getDataUser(data.data.listUser)
+            <%--const data =await  axios.get(`http://localhost:8080/demoProject_war/user?idUser=<%= (user == null) ? null : user.getId() %>`)--%>
+            <%--if(data.data.status !=200){--%>
+            <%--    window.onload =  window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';--%>
+            <%--}--%>
+            <%--getDataUser(data.data.listUser)--%>
+            const userId = <%= (user == null) ? null : user.getId() %>;
+            const url = `http://localhost:8080/demoProject_war/user?idUser=${userId}`;
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url);
+
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+
+                        if (data.status !== 200) {
+                            window.onload = window.location.href = 'http://localhost:8080/demoProject_war/404.jsp';
+                        }
+
+                        getDataUser(data.listUser);
+                    } else {
+                        console.error('Error:', xhr.status);
+                    }
+                }
+            };
+
+            xhr.send();
+
         })()
 
     </script>
