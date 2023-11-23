@@ -26,53 +26,24 @@ public class TopicController extends HttpServlet {
         String idUser = req.getParameter("idUser");
         System.out.println("idUser: " + idUser);
 
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/project", "root", "");
-            UserDAO userDAO = new UserDAO();
-            boolean isAdmin = userDAO.checkIsAdmin(idUser);
-            // Kiểm tra quyền và chuyển hướng
-            JSONObject jsonObject = new JSONObject();
-            if (isAdmin) {
-                // Câu truy vấn lấy dữ liệu topic
-                String getAllTopic = "select idTopic , name, interfaceImage from topic";
-                PreparedStatement preparedStatementGetTopic = connection.prepareStatement(getAllTopic);
-                ResultSet resultSetGetTopic = preparedStatementGetTopic.executeQuery();
-                ArrayList<Topic> listTopic = new ArrayList<Topic>();
-                while (resultSetGetTopic.next()) {
-                    Topic topic = new Topic();
-                    topic.setIdTopic(resultSetGetTopic.getInt("idTopic"));
-                    topic.setName(resultSetGetTopic.getString("name"));
-                    topic.setImageInterface(resultSetGetTopic.getString("interfaceImage"));
-                    topic.setProduct(0);
-                    listTopic.add(topic);
-                }
-                jsonObject.put("status", 200);
-                jsonObject.put("listTopic", listTopic);
-                resp.setContentType("application/json");
-                resp.getWriter().write(jsonObject.toString());
-//            System.out.println(listTopic.size());
-//            req.setAttribute("listTopic" , listTopic);
-//            req.getRequestDispatcher("/quanlichude.jsp").forward(req,resp);
-
-//                resp.sendRedirect("/index.jsp");
-                return;
-            } else {
-                jsonObject.put("status", 404);
-                resp.setContentType("application/json");
-                resp.getWriter().write(jsonObject.toString());
-//                resp.sendRedirect("/404.jsp");
-//                System.out.println("Response Status Code: " + resp.getStatus());
-                return;
-            }
-
-        } catch (SQLException e) {
-            System.err.println("SQLException: " + e.getMessage());
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            System.err.println("ClassNotFoundException: " + e.getMessage());
-            throw new RuntimeException(e);
+        UserDAO userDAO = new UserDAO();
+        boolean isAdmin = userDAO.checkIsAdmin(idUser);
+        // Kiểm tra quyền và chuyển hướng
+        JSONObject jsonObject = new JSONObject();
+        TopicDAO topicDAO = new TopicDAO();
+        System.out.println("isAdmin:" + isAdmin);
+        if (isAdmin) {
+            jsonObject.put("status", 200);
+            jsonObject.put("listTopic", topicDAO.getAllTopics());
+            resp.setContentType("application/json");
+            resp.getWriter().write(jsonObject.toString());
+        } else {
+            jsonObject.put("status", 404);
+            resp.setContentType("application/json");
+            resp.getWriter().write(jsonObject.toString());
         }
+
+
     }
 
 
@@ -124,7 +95,7 @@ public class TopicController extends HttpServlet {
         JSONObject jsonObject = new JSONObject();
         TopicDAO topicDAO = new TopicDAO();
         System.out.println("Delete idTopic: " + idTopic);
-        System.out.println( "At line 126 : " + topicDAO.deleteTopic(idTopic));
+        System.out.println("At line 126 : " + topicDAO.deleteTopic(idTopic));
         if (topicDAO.deleteTopic(idTopic)) {
             jsonObject.put("status", 200);
             jsonObject.put("message", "Đã xóa thành công");

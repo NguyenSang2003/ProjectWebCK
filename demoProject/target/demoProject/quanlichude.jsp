@@ -72,7 +72,6 @@
 </head>
 
 <body>
-<% ArrayList<Topic> listTopic = request.getAttribute("listTopic") == null ? new ArrayList<>() : (ArrayList<Topic>) request.getAttribute("listTopic");%>
 <!-- Topbar Start -->
 <div class="container-fluid">
 
